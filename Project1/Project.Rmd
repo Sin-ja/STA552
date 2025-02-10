@@ -1,0 +1,198 @@
+---
+title: "Risk of stroke"
+author: "Sinja Sharma"
+date: "2025-02-01"
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    toc_collapsed: yes
+    code_folding: hide
+    code_download: yes
+    smooth_scroll: yes
+    theme: lumen
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: no
+    fig_width: 3
+    fig_height: 3
+editor_options: 
+  chunk_output_type: inline
+---
+```{=html}
+
+<style type="text/css">
+
+/* Cascading Style Sheets (CSS) is a stylesheet language used to describe the presentation of a document written in HTML or XML. it is a simple mechanism for adding style (e.g., fonts, colors, spacing) to Web documents. */
+
+h1.title {  /* Title - font specifications of the report title */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+h4.author { /* Header 4 - font specifications for authors  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+h4.date { /* Header 4 - font specifications for the date  */
+  font-size: 18px;
+  font-family: system-ui;
+  color: DarkBlue;
+  text-align: center;
+  font-weight: bold;
+}
+h1 { /* Header 1 - font specifications for level 1 section title  */
+    font-size: 22px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: center;
+    font-weight: bold;
+}
+h2 { /* Header 2 - font specifications for level 2 section title */
+    font-size: 20px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+    font-weight: bold;
+}
+
+h3 { /* Header 3 - font specifications of level 3 section title  */
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - font specifications of level 4 section title  */
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+body { background-color:white; }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+</style>
+```
+
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output will be included in the output files.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("tidyverse")) {
+   install.packages("tidyverse")
+library(tidyverse)
+}
+if (!require("palmerpenguins")) {
+   install.packages("palmerpenguins")
+library(palmerpenguins)
+}
+if (!require("plotly")) {
+   install.packages("plotly")
+library(plotly)
+}
+if (!require("GGally")) {
+   install.packages("GGally")
+library(GGally)
+}
+if (!require("naniar")) {
+   install.packages("naniar")
+library(naniar)
+}
+if (!require("pool")) {
+   install.packages("pool")
+library(pool)
+}
+if (!require("DBI")) {
+   install.packages("DBI")
+library(DBI)
+}
+if (!require("RMySQL")) {
+   install.packages("RMySQL")
+library(RMySQL)
+}
+if (!require("randomForest")) {
+   install.packages("randomForest")
+library(randomForest)
+}
+if (!require("ggiraph")) {
+   install.packages("ggiraph")
+library(ggiraph)
+}
+if (!require("highcharter")) {
+   install.packages("highcharter")
+library(highcharter)
+}
+if (!require("broom")) {
+   install.packages("broom")
+library(broom)
+}
+## 
+knitr::opts_chunk$set(
+  # include code chunk in the output file
+  echo = TRUE,
+  # sometimes, you code may produce warning messages, you can choose to include the warning messages in the output file.
+  warning = FALSE, 
+  # you can also decide whether to include the output in the output file.
+  results = TRUE, 
+  message = FALSE,
+  comment = NA
+)  
+```
+
+# Introduction  
+
+The dataset used in this analysis is from a dataset called healthcare-dataset-stroke-data from Kaggle using R and Python, the publisher is unknown. 
+
+##	Purpose of Data Collection 
+The data for stroke_data was collected to generate a model to predict the risk of stroke in adults aged 18 years and older. The source for the dataset can be found at :
+SOURCE: <https://www.kaggle.com/datasets/fedesoriano/stroke-prediction-dataset>
+
+##	Description of Data:
+The exact method employed to collect data is unknown. 
+
+##	Sample Size and Number of Feature Variables
+This dataset consists of 11 clinical features or variables that have been known to contribute to stroke in populations. This dataset is used to find an association between smoking and the risk of stroke in older population in the United States. There are 12 variables with 5110 observations in total in the dataset. 
+
+
+```{r}
+strk <- read.csv("https://sin-ja.github.io/STA552/Project1/stroke-data.csv")
+```
+
+```{r}
+head(strk)
+str(strk)
+summary(strk)
+```
+
+
+
+
+
+
+
+
+
+
+
+
