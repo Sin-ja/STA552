@@ -1,0 +1,309 @@
+---
+title: "Data preparation with Imputations and Analysis and Comparison of Models"
+author: "Sinja Sharma"
+date: ""
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    toc_collapsed: yes
+    code_folding: hide
+    code_download: yes
+    smooth_scroll: yes
+    theme: lumen
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: no
+    fig_width: 3
+    fig_height: 3
+editor_options: 
+  chunk_output_type: inline
+---
+```{=html}
+
+<style type="text/css">
+
+/* Cascading Style Sheets (CSS) is a stylesheet language used to describe the presentation of a document written in HTML or XML. it is a simple mechanism for adding style (e.g., fonts, colors, spacing) to Web documents. */
+
+h1.title {  /* Title - font specifications of the report title */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+h4.author { /* Header 4 - font specifications for authors  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+h4.date { /* Header 4 - font specifications for the date  */
+  font-size: 18px;
+  font-family: system-ui;
+  color: DarkBlue;
+  text-align: center;
+  font-weight: bold;
+}
+h1 { /* Header 1 - font specifications for level 1 section title  */
+    font-size: 22px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: center;
+    font-weight: bold;
+}
+h2 { /* Header 2 - font specifications for level 2 section title */
+    font-size: 20px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+    font-weight: bold;
+}
+
+h3 { /* Header 3 - font specifications of level 3 section title  */
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - font specifications of level 4 section title  */
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+body { background-color:white; }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+</style>
+```
+---
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output will be included in the output files.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("tidyverse")) {
+   install.packages("tidyverse")
+library(tidyverse)
+}
+if (!require("palmerpenguins")) {
+   install.packages("palmerpenguins")
+library(palmerpenguins)
+}
+if (!require("plotly")) {
+   install.packages("plotly")
+library(plotly)
+}
+if (!require("GGally")) {
+   install.packages("GGally")
+library(GGally)
+}
+if (!require("ggiraph")) {
+   install.packages("ggiraph")
+library(ggiraph)
+}
+if (!require("highcharter")) {
+   install.packages("highcharter")
+library(highcharter)
+}
+if (!require("broom")) {
+   install.packages("broom")
+library(broom)
+}
+if (!require("corrplot")) {
+   install.packages("corrplot")
+library(plotly)
+}
+if (!require("cluster")) {
+   install.packages("cluster")
+library(cluster)
+}
+if (!require("FactoMineR")) {
+   install.packages("FactoMineR")
+library(FactoMineR)
+}
+if(!require("brglm")) {
+   install.packages("brglm")
+library(brglm)
+}
+if(!require("caret")) {
+   install.packages("caret")
+library("caret")
+   }
+if(!require("DMwR2")) {
+   install.packages("DMwR2")
+library("DMwR2")
+}
+if(!require("mice")) {
+  install.packages("mice")
+library(mice)
+}
+
+## 
+knitr::opts_chunk$set(
+  # include code chunk in the output file
+  echo = TRUE,
+  # sometimes, you code may produce warning messages, you can choose to include the warning messages in the output file.
+  warning = FALSE, 
+  # you can also decide whether to include the output in the output file.
+  results = TRUE, 
+  message = FALSE,
+  comment = NA
+)  
+```
+
+# Introduction 
+
+Missing values are encountered quite frequently in datasets and are quite common and can arise due to various reasons. Data collection errors, non-response from participants, or even failures from the collection tool are some reasons for missing values in datasets. Missing values are of importance as they can have a significant impact on the reliability of analyses done and can have misleading or erroneous/ biased results. 
+Missing values can be classified into: Missing completely at Random (MCAR), Missing at Random (MAR), and Missing Not at Random (MNAR). 
+
+```{r}
+strk <- read.csv("https://sin-ja.github.io/STA552/Project1/stroke-data.csv")
+```
+
+```{r}
+head(strk)
+str(strk)
+summary(strk)
+```
+
+## Replacement Imputation for Categorical Features 
+Missing values can be addressed using imputation techniques based on the nature and extent of missingness. 
+One of the most simplest way to handle missing values is through simple imputation with mean, median, or mode. Other advanced methods include Multiple Imputation by Chained Equations (MICE) which creates multiple plausible datasets by iteratively imputing missing values using regression models. 
+KNN or K-Nearest Neighbors (KNN) imputation where missing values are filled based on most similar observations in the dataset. 
+
+```{r}
+miss_val <- colSums(is.na(strk)) #count missing values in each column 
+miss_val[miss_val>0] # display columns with missing values 
+sum(is.na(strk$bmi))
+
+```
+
+```{r}
+# identify numeric and categorical columns 
+num_cols <- names(strk)[sapply(strk, is.numeric)]
+cat_cols <- names(strk)[sapply(strk,is.character)]
+
+# Count missing values in numeric columns 
+num_miss <- colSums(is.na(strk[num_cols]))
+cat_miss <- colSums(is.na(strk[cat_cols]))
+
+# Display missing values in numerical variables
+cat("missing values in numeric variables:\n")
+print(num_miss[num_miss >0])
+
+# Display missing values in categorical variables
+cat("Missing values in categorical variables:\n")
+print(cat_miss[cat_miss >0])
+
+# to calculate mode for categorica variables
+
+get_mode <- function(x) {
+  ux <- unique(na.omit(x)) #remove NA before finding mode
+  ux[which.max(tabulate(match(x,ux)))] #return most frequent value 
+}
+cat_cols <- names(strk)[sapply(strk, is.character) | sapply(strk, is.factor)]
+# replace NA in categorical variables with mode 
+for (col in cat_cols) {
+  strk[[col]][is.na(strk[[col]])] <- get_mode(strk[[col]])
+}
+```
+## Regression-based Imputation for Numerical Features 
+Regression based imputation model is useful in predicting missing values using other available variables and their values. This method was successful in retaining more predictors. Age effect was the most significant predictor in this model. 
+
+```{r}
+# apply KNN imputation (k=5 nearest neighbors)
+strk[num_cols] <- knnImputation(strk[num_cols], k=5)
+
+# check for any missing values 
+sum(is.na(strk))
+
+response_var <- "stroke" # define response variable
+feature_vars <- c("age", "smoking_status", "bmi", "hypertension", "heart_disease") # manually specify feature variable 
+subset_data <- strk[, c(feature_vars, response_var), drop=FALSE] # create subset of selected feature variables and response variables 
+
+table(strk$stroke, useNA = "always") # check distribution 
+strk$stroke <- as.factor(strk$stroke) # convert into factor variable 
+
+# using straified sampling to include both factors in the train_data set
+set.seed(123)
+
+# stratified split to ensure both 0s and 1s in the training dataset 
+train_index <- createDataPartition(strk$stroke, p=0.8, list = FALSE)
+#create train and test datasets
+train_data <- strk[train_index, ] # 80% training data 
+test_data <- strk[-train_index, ] # 20% test data
+
+# ensure "stroke" has two factors 0 and 1 
+train_data$stroke <- factor(train_data$stroke, levels =c("0", "1"))
+test_data$stroke <- factor(test_data$stroke, levels =c("0", "1"))
+train_data <- subset_data[!is.na(subset_data$stroke), ]
+table(train_data$stroke)
+str(train_data$stroke)
+
+# filter complete cases 
+train_data <- subset_data[is.na(subset_data$stroke),]
+table(subset_data$stroke, useNA="always")
+
+train_data$stroke <- as.factor(train_data$stroke)
+str(train_data$stroke)
+train_data <- subset_data[complete.cases(subset_data$stroke), ]
+# fit logistic regression model 
+logit_model <- glm(stroke ~ ., data = train_data, family = binomial)
+summary(logit_model)
+
+# add random error for variability 
+resid_sd <- sd(logit_model$residuals, na.rm = TRUE)
+
+#generate random error
+set.seed(123)
+random_err <- rnorm(length(logit_model), mean = 0, sd = resid_sd)
+
+```
+## Multiple Imputation 
+
+The MICE method leads to less biased estimates. Similar to regression based model, in the multiple imputation model, age remains highly significant. Hypertension is marginally significant with p = 0.065. 
+```{r}
+colSums(is.na(strk))
+
+imputed_data <- mice(strk, m = 5, method = "pmm", seed = 123) # MICE imputation pmm
+summary(imputed_data)
+
+strk_imputed <- complete(imputed_data, 1) # select 1 complete imputed dataset 
+#Select variable: response and feature 
+respon_var <- "stroke"
+feat_var <- c("age", "smoking_status", "hypertension", "bmi", "heart_disease")
+final_data <- strk_imputed[, c(feat_var, respon_var), drop=FALSE]
+str(final_data)
+
+# split data into train and test sets 
+set.seed(123)
+train_indexMICE <- createDataPartition(final_data$stroke, p = 0.8, list = FALSE)
+
+train_dataMICE <- final_data[train_indexMICE, ]
+test_dataMICE <- final_data[-train_indexMICE, ]
+table(train_dataMICE$stroke)
+table(test_dataMICE$stroke)
+
+# fit the regression model 
+logit_model <- glm(stroke ~., data = train_dataMICE, family = binomial)
+summary(logit_model)
+
+```
