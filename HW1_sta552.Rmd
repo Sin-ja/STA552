@@ -1,0 +1,361 @@
+---
+title: "Risk of stroke"
+author: "Sinja Sharma"
+date: "2025-02-01"
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    toc_collapsed: yes
+    code_folding: hide
+    code_download: yes
+    smooth_scroll: yes
+    theme: lumen
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: no
+    fig_width: 3
+    fig_height: 3
+editor_options: 
+  chunk_output_type: inline
+---
+```{=html}
+
+<style type="text/css">
+
+/* Cascading Style Sheets (CSS) is a stylesheet language used to describe the presentation of a document written in HTML or XML. it is a simple mechanism for adding style (e.g., fonts, colors, spacing) to Web documents. */
+
+h1.title {  /* Title - font specifications of the report title */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+h4.author { /* Header 4 - font specifications for authors  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+h4.date { /* Header 4 - font specifications for the date  */
+  font-size: 18px;
+  font-family: system-ui;
+  color: DarkBlue;
+  text-align: center;
+  font-weight: bold;
+}
+h1 { /* Header 1 - font specifications for level 1 section title  */
+    font-size: 22px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: center;
+    font-weight: bold;
+}
+h2 { /* Header 2 - font specifications for level 2 section title */
+    font-size: 20px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+    font-weight: bold;
+}
+
+h3 { /* Header 3 - font specifications of level 3 section title  */
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - font specifications of level 4 section title  */
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+body { background-color:white; }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+</style>
+```
+
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output will be included in the output files.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("tidyverse")) {
+   install.packages("tidyverse")
+library(tidyverse)
+}
+if (!require("palmerpenguins")) {
+   install.packages("palmerpenguins")
+library(palmerpenguins)
+}
+if (!require("plotly")) {
+   install.packages("plotly")
+library(plotly)
+}
+if (!require("GGally")) {
+   install.packages("GGally")
+library(GGally)
+}
+if (!require("naniar")) {
+   install.packages("naniar")
+library(naniar)
+}
+if (!require("pool")) {
+   install.packages("pool")
+library(pool)
+}
+if (!require("DBI")) {
+   install.packages("DBI")
+library(DBI)
+}
+if (!require("RMySQL")) {
+   install.packages("RMySQL")
+library(RMySQL)
+}
+if (!require("randomForest")) {
+   install.packages("randomForest")
+library(randomForest)
+}
+if (!require("ggiraph")) {
+   install.packages("ggiraph")
+library(ggiraph)
+}
+if (!require("highcharter")) {
+   install.packages("highcharter")
+library(highcharter)
+}
+if (!require("broom")) {
+   install.packages("broom")
+library(broom)
+}
+if (!require("gridExtra")) {
+   install.packages("gridExtra")
+library(gridExtra)
+}
+if (!require("skimr")) {
+   install.packages("skimr")
+library(skimr)
+}
+if (!require("corrplot")) {
+   install.packages("corrplot")
+library(corrplot)
+}
+if (!require("ggplot2")) {
+   install.packages("ggplot2")
+library(ggplot2)
+}
+## 
+knitr::opts_chunk$set(
+  # include code chunk in the output file
+  echo = TRUE,
+  # sometimes, you code may produce warning messages, you can choose to include the warning messages in the output file.
+  warning = FALSE, 
+  # you can also decide whether to include the output in the output file.
+  results = TRUE, 
+  message = FALSE,
+  comment = NA
+)  
+```
+
+# Introduction  
+
+The dataset used in this analysis is from a dataset called healthcare-dataset-stroke-data from Kaggle using R and Python, the publisher is unknown. 
+
+##	Purpose of Data Collection 
+The data for stroke_data was collected to generate a model to predict the risk of stroke in adults aged 18 years and older. The source for the dataset can be found at :
+SOURCE: <https://www.kaggle.com/datasets/fedesoriano/stroke-prediction-dataset>
+
+##	Description of Data:
+The exact method employed to collect data is unknown. 
+
+##	Sample Size and Number of Feature Variables
+This dataset consists of 11 clinical features or variables that have been known to contribute to stroke in populations. This dataset is used to find an association between smoking and the risk of stroke in older population in the United States. There are 12 variables with 5110 observations in total in the dataset. 
+
+
+```{r}
+strk <- read.csv("https://sin-ja.github.io/STA552/Project1/stroke-data.csv")
+```
+
+```{r}
+head(strk)
+str(strk)
+summary(strk)
+```
+## Working Dataset 
+While checking for missing values variable BMI had NA for missing values 
+
+## Distribution of Individual Features
+
+# Handling missing values 
+Missing values in BMI were imputed with median vaues for the purporse of analysis.
+
+```{r}
+colSums(is.na(strk)) # check for missing values
+strk$bmi[is.na(strk$bmi)] <- median(strk$bmi, na.rm = FALSE)
+colSums(is.na(strk)) #verify missing values are handled
+```
+# Addressing outliers 
+The boxplot for age indicates that most values fall within a normal range with a few in very high or very low ages. Possible explanations could be some very young or old individuals included in the dataset.
+
+The boxplot for BMI includes several outliers above the upper whiskers indicating extremely high BMI values: obese individuals.
+Some lower value BMI outliers may represent underweight individuals with severe malnourishments.
+
+The boxplot for average glucose level has several extreme outliers with high values, which could mean some individuals with unchecked diabetes or hyperglycemia. 
+
+```{r}
+numeric_vars <- strk %>% select(where(is.numeric)) #identifying numeric variables
+non_binary_vars <- numeric_vars %>%
+  select(where(~length(unique(.))>2)) #removing binary variables
+
+colnames(non_binary_vars) #print selected columns
+```
+
+## Relationship Between Features 
+The exploration of potential association between feature variables.
+1.	Distribution of stroke status in the sample population
+2.	Stroke status with Age distribution 
+3.	Age and Average Glucose Level with Stroke status 
+4.	Gender Vs Smoking Status with Stroke Status 
+
+#Plots for non-binary variable 
+
+```{r}
+plot_num <- list()
+
+#loop through each numeric non-binary variable to generate box plots 
+for (var in colnames(non_binary_vars)) {
+  p <- ggplot(strk, aes_string(y=var)) +
+    geom_boxplot(fill = "blue", color = "black", alpha = 0.7) +
+    labs(title = paste("Boxplot of", var), y =var) +
+    theme_minimal()
+
+plot_num[[var]] <- p #storing the plot in the list
+}
+
+do.call(grid.arrange, c(plot_num, ncol = 2))
+
+
+```
+
+# Distribution of Stroke status in the Population 
+The “No Stroke” (0) category shows that there were more individuals in the dataset that did not experience stroke.
+The “Stroke” bar is much smaller indicating fewer stroke cases in the dataset.
+```{r}
+ggplot(strk, aes(x= factor(stroke))) + 
+ geom_bar(fill="blue") +
+  labs(title="stroke distribution", x="stroke(0 = No, 1 = Yes)", y ="Count") +
+ theme_minimal() 
+
+```
+# scatter plot with stroke status color 
+```{r}
+ggplot(strk, aes(x=age, y=avg_glucose_level, color=factor(stroke))) + 
+  geom_point(alpha=0.6) +
+  labs(title = "Age vs. Average Glucose Level (Colored by stroke status")
+    x="Age"
+    y="Average Glucose Level"
+    color="Stroke Status"
+  scale_color_manual(values= c("darkblue", "red"), labels = c("No Stroke", "Stroke"))  
+  theme_minimal()
+```
+```{r}
+strk_colors <- c("0" = "#1f77b4", "1" = "#d62728") # Blue = no stroke, red= stroke
+
+fig <- plot_ly(data=strk,
+               x= ~age,
+               y= ~avg_glucose_level,
+               color= ~factor(stroke),
+               colors=strk_colors,
+               marker= list(size=8, opacity = 0.7)) %>%
+  layout(title="Age vs glucose level (colored by stroke status)",
+         plot_bgcolor = "white",
+         xaxis = list(title = "Age"),
+         yaxis = list(title = "Average glucose level"),
+         legend = list(title = list(text="<b> Stroke Status </b>")),
+         margin = list(l=50, r= 50, t=50, pad=20))
+
+```
+
+# Stroke Status with Age Distribution 
+The boxplot indicates that the Stroke group (1) has a higher median age compared to the No Stroke (0) group, which suggests that older individuals are more likely to have a stroke. 
+The Stroke group (1) also has a wider IQR indicating a greater variation in ages among stroke patients. While the No Stroke group (2) has a lower IQR indicating a more narrower age range. 
+There are few outliers which indicate some younger individuals in the stroke category, with some very old individuals with stroke. 
+This indicates that older individuals are more at risk of experiencing stroke compared to younger individuals although there might be some rare instances where young people might experience stroke. 
+
+```{r}
+ggplot(strk, aes(x = factor(stroke), y = age, fill = factor(stroke))) + 
+  geom_boxplot() + 
+  labs(title = "Age Distribution by Stroke Status", x = "Stroke (0 = No, 1 = Yes)", y = "Age") +
+  theme_minimal()
+```
+
+# Age and Average Glucose Level with Stroke Status
+In this interactive plot, stroke cases (red) tend to cluster more in older age group, which can suggest that age is a significant factor in stroke risk. 
+It is also evident from the plot that stroke cases have higher glucose levels suggesting a potential relationship between diabetes and stroke incidences. 
+Whereas non-stroke patients (blue) are more evenly distributed across all ages. And younger individuals seem to fall under lower or normal glucose levels. 
+There are some outliers in the dataset with extremely high glucose levels which could individuals with undetected diabetes. 
+
+```{r}
+ggplot(strk, aes(x = age, y = avg_glucose_level)) + 
+  geom_point(alpha = 0.6, color = "blue") + 
+  labs(title = "Age vs Average Glucose Level",
+       x = "Age",
+       y = "Average Glucose Level") + 
+  theme_minimal()
+```
+# Gender Vs Smoking Status with Stroke Status 
+This bar chart visualizes the relationship between gender, smoking status and stroke status. It helps to understand how gender and smoking habits can impact stroke status and highlight the risk of stroke in individuals who smoke compared to different genders. 
+The plot highlights that stroke cases (red bars) are generally low across all smoking categories compared to non-stroke cases (blue). The formerly smoked categories seems to have a higher proportions of stroke cases compared to other categories indicating a possible lingering health effects of smoking even after quitting. 
+Females seem to outnumber males in most categories, specifically in the never smoked group. 
+
+# Count of Stroke cases by gender and Smoking status
+```{r}
+ggplot(strk, aes(x=gender, fill=factor(stroke))) + 
+  geom_bar(position = "dodge") +
+  facet_wrap(~smoking_status) +
+  labs(title = "Gender vs Smoking Status vs Stroke Status", 
+       x = "Gender",
+       y = "Count",
+       fill = "Stroke Status (0=No, 1=Yes)") + 
+  scale_fill_manual(values = c("blue", "red")) 
+theme_minimal()
+```
+
+#Proportion of Stroke cases by gender and smoking status 
+```{r}
+ggplot(strk, aes(x=gender, fill=factor(stroke))) + 
+  geom_bar(position="fill") +  #stacked proportion plot 
+  facet_wrap(~smoking_status) +
+  labs(title = "Proportion of Stroke cases by Gender and Smoking Status",
+       x="Gender",
+       y="Proportion",
+       fill="Stroke Status") +
+       scale_fill_manual(values=c("blue", "red"))
+       theme_minimal()
+```
+
+
+
+
+
+
+
