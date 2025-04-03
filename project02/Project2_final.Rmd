@@ -1,0 +1,931 @@
+---
+title: "The Effect of Quality of Sleep and Gender on Sleep Disorders"
+author: "Sinja Sharma"
+date: ""
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    toc_collapsed: yes
+    code_folding: hide
+    code_download: yes
+    smooth_scroll: yes
+    theme: lumen
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: no
+    fig_width: 3
+    fig_height: 3
+editor_options: 
+  chunk_output_type: inline
+---
+```{=html}
+
+<style type="text/css">
+
+/* Cascading Style Sheets (CSS) is a stylesheet language used to describe the presentation of a document written in HTML or XML. it is a simple mechanism for adding style (e.g., fonts, colors, spacing) to Web documents. */
+
+h1.title {  /* Title - font specifications of the report title */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+h4.author { /* Header 4 - font specifications for authors  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+h4.date { /* Header 4 - font specifications for the date  */
+  font-size: 18px;
+  font-family: system-ui;
+  color: DarkBlue;
+  text-align: center;
+  font-weight: bold;
+}
+h1 { /* Header 1 - font specifications for level 1 section title  */
+    font-size: 22px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: center;
+    font-weight: bold;
+}
+h2 { /* Header 2 - font specifications for level 2 section title */
+    font-size: 20px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+    font-weight: bold;
+}
+
+h3 { /* Header 3 - font specifications of level 3 section title  */
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - font specifications of level 4 section title  */
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+body { background-color:white; }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+</style>
+```
+---
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output will be included in the output files.
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("tidyverse")) {
+   install.packages("tidyverse")
+library(tidyverse)
+}
+if (!require("palmerpenguins")) {
+   install.packages("palmerpenguins")
+library(palmerpenguins)
+}
+if (!require("plotly")) {
+   install.packages("plotly")
+library(plotly)
+}
+if (!require("GGally")) {
+   install.packages("GGally")
+library(GGally)
+}
+if (!require("naniar")) {
+   install.packages("naniar")
+library(naniar)
+}
+if (!require("pool")) {
+   install.packages("pool")
+library(pool)
+}
+if (!require("DBI")) {
+   install.packages("DBI")
+library(DBI)
+}
+if (!require("RMySQL")) {
+   install.packages("RMySQL")
+library(RMySQL)
+}
+if (!require("randomForest")) {
+   install.packages("randomForest")
+library(randomForest)
+}
+if (!require("ggiraph")) {
+   install.packages("ggiraph")
+library(ggiraph)
+}
+if (!require("highcharter")) {
+   install.packages("highcharter")
+library(highcharter)
+}
+if (!require("broom")) {
+   install.packages("broom")
+library(broom)
+}
+if (!require("e1071")) {
+   install.packages("e1071")
+   library(knitr)
+}
+if (!require("corrplot")) {
+   install.packages("corrplot")
+library(plotly)
+}
+if (!require("cluster")) {
+   install.packages("cluster")
+library(cluster)
+}
+if (!require("FactoMineR")) {
+   install.packages("FactoMineR")
+library(FactoMineR)
+}
+if (!require("caret")) {
+   install.packages("caret")
+library(caret)
+}
+if(!require("mice")) {
+  install.packages("mice")
+library(mice)
+}
+if(!require("DMwR2")) {
+   install.packages("DMwR2")
+library("DMwR2")
+}
+if(!require("pROC")) {
+   install.packages("pROC")
+library("pROC")
+}
+if(!require("glmnet")) {
+   install.packages("glmnet")
+library("glmnet")
+}
+if (!require("gridExtra")) {
+   install.packages("gridExtra")
+library(gridExtra)
+}
+if (!require("ggrepel")) {
+   install.packages("ggrepel")
+library(ggrepel)
+}
+## 
+knitr::opts_chunk$set(
+  # include code chunk in the output file
+  echo = TRUE,
+  # sometimes, you code may produce warning messages, you can choose to include the warning messages in the output file.
+  warning = FALSE, 
+  # you can also decide whether to include the output in the output file.
+  results = TRUE, 
+  message = FALSE,
+  comment = NA
+)  
+```
+# Introduction  
+Sleep plays a critical role in human health, playing a vital role in cognitive processing, immune responses, emotional regulation and metabolic balance. As modern lifestyle changes evolves, it is increasingly becoming evident that modern lifestyles are interfering with natural sleep rhythms. It has become of great importance to understand factors that influence sleep quality and associated disorders. 
+The CDC in 2023 reported 1 in 3 adults worldwide do not get enough sleep. According to NIH (2022) sleep disorders affect up to 50-70 million Americans with Insomnia and Sleep Apnea being the most common sleep disorders.
+The dataset used in this analysis is from a dataset called Sleep_health_and_lifestyle_dataset from Kaggle using R and Python, the publisher is unknown. 
+The dataset used in this study captures a wide range of sleep related and lifestyle variables. 
+```{r}
+sleep <- read.csv("https://sin-ja.github.io/STA552/Sleep_health_and_lifestyle_dataset.csv", stringsAsFactors = FALSE)
+sl_copy <- sleep
+names(sleep)
+#str(sleep)
+#summary(sleep)
+#glimpse(sleep)
+```
+## Dataset and Variables 
+The dataset used in this analysis is from a dataset called Sleep_health_and_lifestyle_dataset from Kaggle using R and Python, the publisher is unknown. 
+The dataset used in this study captures a wide range of sleep related and lifestyle variables: 
+
+1. Person.ID                            numeric 
+2. Gender                               character
+3. Age                                  numeric
+4. Occupation                           character
+5. Sleep.Duration                       numeric
+6. Quality.of.Sleep                     numeric
+7. Physical.Activity.Level              numeric
+8. Stress.Level                         numeric
+9. BMI.Category                         character
+10. Blood.Pressure                      character
+11. Heart.Rate                          numeric
+12. Daily.Steps                         numeric
+13. Sleep.Disorder                      character
+
+## Adressing missing values 
+There were no missing values in the dataset. No imputations were needed. 
+```{r}
+
+colSums(is.na(sleep))
+
+# Count missing values per column
+missing_data <- data.frame(
+  variable = names(sleep),
+  missing = colSums(is.na(sleep))
+)
+
+# Plot only if any missing values exist
+if (any(missing_data$missing > 0)) {
+  ggplot(missing_data[missing_data$missing > 0, ], aes(x = reorder(variable, -missing), y = missing)) +
+    geom_bar(stat = "identity", fill = "#fe346e") +
+    labs(
+      title = "Missing Values per Column",
+      x = "Column", y = "Count of Missing Values"
+    ) +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+} else {
+  print("No missing values found in the dataset!")
+}
+
+```
+# Eploratory Data Analysis 
+## Percentange of People with Sleep Disorder
+Overall approximately 20% of individuals in the dataset had some form of sleep disorder with 80% reporting no sleep disorder. Sleep apnea accounted for a slightly higher with 20.9% of the sleep disorder and insomnia following closely with 20.6%. There was a noted moderate class imbalance in the dataset with significantly higher individuals with no sleep disorder group. This imbalance was taken into account during modelling. Although the primary target for this evaluation was for sleep disorder. This could not be achieved in some modelling due to the class imbalance therefore gender was used.
+```{r}
+# Count and calculate percentages
+sleep_percent <- sleep %>%
+  group_by(Sleep.Disorder) %>%
+  summarise(count = n()) %>%
+  mutate(percent = round(count / sum(count) * 100, 1))
+
+print(sleep_percent)
+
+ggplot(sleep_percent, aes(x = reorder(Sleep.Disorder, percent), y = percent, fill = Sleep.Disorder)) +
+  geom_col(width = 0.6) +
+  coord_flip() +
+  geom_text(aes(label = paste0(percent, "%")), hjust = -0.1, size = 5, fontface = "bold") +
+  scale_fill_manual(values = c("None" = "grey", "Sleep Apnea" = "red", "Insomnia" = "blue")) +
+  labs(
+    title = "Percentage of People with Sleep Disorders",
+    x = "", y = "Percentage"
+  ) +
+  theme_minimal(base_family = "serif") +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    legend.position = "none"
+  ) +
+  ylim(0, max(sleep_percent$percent) + 10)
+
+```
+The horizontal bar plots with color coding (blue = insomnia, red = sleep apnea) clearly distinguish between the disorders. The plots help emphasize the dominance of sleep apnea in the population and was used in the decision to explore classifications and balancing techniques. 
+
+## Plot for gender vs sleep disorder 
+```{r}
+sleep_clean <- sleep %>%
+  filter(Gender %in% c("Male", "Female")) %>%
+  mutate(Sleep.Disorder = factor(Sleep.Disorder,
+                                 levels = c(0, 1, 2),
+                                 labels = c("None", "Sleep Apnea", "Insomnia"))) %>%
+  drop_na(Gender, Sleep.Disorder)
+
+ggplot(sleep_clean, aes(x = Gender, fill = Sleep.Disorder)) +
+  geom_bar(position = "fill") +
+  labs(title = "Proportion of Sleep Disorders by Gender",
+       x = "Gender", y = "Percentage",
+       fill = "Sleep Disorder") +
+  theme_minimal()
+
+ ggplot(sleep_clean, aes(x = Gender, fill = Sleep.Disorder)) +
+  geom_bar(position = "fill") +
+  labs(
+    title = "Counts of Sleep Disorders by Gender",
+    x = "Gender", y = "Count",
+    fill = "Sleep Disorder"
+  ) +
+  theme_minimal()
+
+
+```
+
+Among individuals with sleep disorders males show a noticeably higher proportion of sleep apnea. Females appear to have a slightly more insomnia compared to males. Based on the bar charts above, the distribution of sleep disorders differs by gender suggesting the potential gender related patterns in sleep health outcomes. 
+
+## Impact of age and stress level on sleep disorders
+Sleep health is significantly altered with increased age. Here, we explore the relationship between age and stress level with sleep disorders, and stress levels in various age groups to explore potential relationship between ages, level of stress and sleep disorders. 
+```{r}
+# Ensure Stress Level is numeric
+sleep$Stress.Level <- as.numeric(sleep$Stress.Level)
+
+# Categorize stress
+sleep <- sleep %>%
+  mutate(Stress.Category = case_when(
+    Stress.Level == 3 ~ "Low Stress",
+    Stress.Level %in% c(4, 5) ~ "Medium Stress",
+    Stress.Level %in% c(6, 7) ~ "High Stress",
+    Stress.Level == 8 ~ "Very High Stress",
+    TRUE ~ "Unknown"
+  ))
+```
+## Plot for Age vs stress category
+```{r}
+ggplot(sleep %>% filter(Stress.Category != "Unknown"), 
+       aes(x = Age, fill = Stress.Category)) +
+  geom_density(alpha = 0.6) +
+  scale_fill_manual(values = c("Low Stress" = "#512b58", 
+                               "Medium Stress" = "#fa8c3b", 
+                               "High Stress" = "#fe346e", 
+                               "Very High Stress" = "#b33b3b")) +
+  labs(title = "Age Distribution by Stress Level",
+       x = "Age", y = "Density", fill = "Stress Level") +
+  theme_minimal(base_family = "serif") +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    legend.title = element_text(face = "bold")
+  )
+```
+
+## Plot for Age group vs stress category 
+```{r}
+sleep <- sleep %>%
+  mutate(Age.Group = case_when(
+    Age <= 12 ~ "Children",
+    Age <= 19 ~ "Teens",
+    Age <= 35 ~ "Adults",
+    Age <= 55 ~ "Mid Adults",
+    Age > 55 ~ "Elderly"
+  ))
+
+ggplot(sleep %>% filter(Stress.Category != "Unknown"),
+       aes(x = Age.Group, fill = Stress.Category)) +
+  geom_bar(position = "dodge") +
+  scale_fill_manual(values = c("Low Stress" = "#512b58", 
+                               "Medium Stress" = "#fa8c3b", 
+                               "High Stress" = "#fe346e", 
+                               "Very High Stress" = "#b33b3b")) +
+  labs(title = "Impact of Age Group on Stress Level",
+       x = "Age Group", y = "Count", fill = "Stress Level") +
+  theme_minimal(base_family = "serif") +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+```
+Age distributions with higher levels of stress is skewed towards higher age group. 
+
+## Plot for Quality of sleep, sleep duration and sleep disorder 
+
+```{r}
+
+# Set colors manually
+custom_colors <- c("None" = "grey", 
+                   "Sleep Apnea" = "red", 
+                   "Insomnia" = "blue")
+
+# Filter and clean
+plot_data <- sleep %>%
+  filter(!is.na(Quality.of.Sleep), !is.na(Sleep.Duration), !is.na(Sleep.Disorder))
+
+# Plot
+ggplot(plot_data, aes(x = Sleep.Duration, y = Quality.of.Sleep, color = Sleep.Disorder)) +
+  geom_jitter(alpha = 0.6, width = 0.2, height = 0.2, size = 2) +
+  scale_color_manual(values = custom_colors) +
+  labs(
+    title = "Quality of Sleep vs Sleep Duration",
+    subtitle = "Colored by Type of Sleep Disorder",
+    x = "Sleep Duration (hours)",
+    y = "Quality of Sleep (1–10)",
+    color = "Sleep Disorder"
+  ) +
+  theme_minimal(base_family = "serif") +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    legend.title = element_text(face = "bold")
+  )
+
+```
+In the above plot, it highlights that individuals with higher stress levels (6-10) on a 10 point scale are substantially more likely to have a sleep disorder. Those with lower stress level (1-3) have a lower prevalence of sleep disorders. the relationship seems particularly strong for insomnia which appears to be correlated to higher stress levels. 
+```{r}
+ggplot(plot_data, aes(x = Stress.Level, y = Quality.of.Sleep)) +
+  geom_point(alpha = 0.5, color = "#512b58") +
+  geom_smooth(method = "lm", color = "#fe346e", se = TRUE) +
+  labs(
+    title = "Scatter Plot: Stress Level vs Sleep Quality",
+    x = "Stress Level",
+    y = "Quality of Sleep"
+  ) +
+  theme_minimal(base_family = "serif")
+
+```
+
+In the scatter plot with a fitted regression line, it shows a clear negative relationship between Stress level and Quality of Sleep. As stress levels increase, the quality of sleep decreases. 
+The downward-sloping regression line indicates a strong inverse linear trend suggesting that individuals experiencing higher stress tend to report lower sleep quality scores. 
+
+## Outliers for numeric variables
+```{r}
+# Identify numeric columns
+numeric_cols <- sapply(sleep, is.numeric)
+
+# Compute z-scores and flag outliers
+z_scores <- as.data.frame(scale(sleep[, numeric_cols]))
+outliers_z <- z_scores %>% 
+  mutate_all(~ abs(.) > 3)  # Flag TRUE if absolute z-score > 3
+
+# Count outliers per variable
+colSums(outliers_z)
+
+# Gather numeric variables into long format
+sleep %>%
+  select(where(is.numeric)) %>%
+  pivot_longer(everything(), names_to = "variable", values_to = "value") %>%
+  ggplot(aes(x = variable, y = value)) +
+  geom_boxplot(fill = "#fa8c3b", alpha = 0.5) +
+  theme_minimal(base_family = "serif") +
+  labs(title = "Boxplots for Outlier Detection (IQR Method)")
+
+```
+The IQR method for outlier detection in Daily steps shows significant variability and large spread in values. The box plot shows that some individuals log extremely high steo counts compared to the other population. Variable Daily Steps may need log transformation. 
+
+## Log transform the outliers 
+Using log transformation to address the outliers in Daily steps noted in the above box plot. Outliers in the distribution can influence regression models and  skew models due to their extreme values and can lead to erroneous results. 
+```{r}
+# Function to flag outliers based on IQR
+detect_iqr_outliers <- function(x) {
+  Q1 <- quantile(x, 0.25, na.rm = TRUE)
+  Q3 <- quantile(x, 0.75, na.rm = TRUE)
+  IQR_val <- Q3 - Q1
+  x < (Q1 - 1.5 * IQR_val) | x > (Q3 + 1.5 * IQR_val)
+}
+
+# Identify numeric columns
+numeric_cols <- sapply(sleep, is.numeric)
+
+# Detect outliers across numeric columns
+outlier_flags <- sleep[, numeric_cols] %>%
+  mutate(across(everything(), detect_iqr_outliers))
+
+# Copy of original data
+sleep_log_outliers <- sleep
+
+# Apply log transform only to outliers
+for (col in names(sleep)[numeric_cols]) {
+  flags <- outlier_flags[[col]]
+  sleep_log_outliers[[col]][flags] <- log1p(sleep[[col]][flags])
+}
+
+# Compare before and after log transformation 
+par(mfrow = c(1, 2))
+hist(sleep$Sleep.Duration, main = "Original", col = "skyblue", xlab = "Sleep Duration")
+hist(sleep_log_outliers$Sleep.Duration, main = "Log-transformed Outliers", col = "tomato", xlab = "Sleep Duration")
+```
+The original sleep duration data shows slightly skewed with a few values extending towards the higher end. The frequency distribution shows that most individuals sleep between 6.5 - 8 hours with moderate variability. After log transformation, the histogram shows reduced skewness for higher tails which makes the distribution more symmetrical.
+
+# Feature Engineering 
+Feature engineering plays a pivotal role in enhancing model performance by transforming raw variables into more meaningful or interpretable representations. In this analysis, we applied transformations to improve model and accomodate specific needs of linear and logistic regression. 
+
+Linear Regression -> predicting a continuous outcome -> Quality of sleep
+This model predicts a continous outcome, that requires either numeric or encoded predictors. For this:
+
+Age grouping was done with the Age variable into meaningful categories such as Children (<=12), Teens(13-19), Adults(20-35), Mid Adults(35-55) and Elderly(>55).
+Stress category: Low(<=3), Medium(<=5), High(<=7), Very High(>=8)
+
+Logistic Regression -> predicting a binary outcome -> Gender : Male and Female
+This binary classification benefits from discrete and well-encoded predictors. 
+
+Binary sleep disorder: 0 = None, 1 = Disorder (combining Sleep Apnea and Insomnia)
+
+```{r}
+# Age group 
+
+sleep <- sleep %>%
+  mutate(Age.Group = case_when(
+    Age <= 12 ~ "Children",
+    Age <= 19 ~ "Teens",
+    Age <= 35 ~ "Adults",
+    Age <= 55 ~ "Mid Adults",
+    Age > 55 ~ "Elderly",
+    TRUE ~ NA_character_
+  ))
+
+# Stress category 
+
+sleep <- sleep %>%
+mutate(Stress.Category = case_when(
+  Stress.Level <= 3 ~ "Low",
+  Stress.Level <= 5 ~ "Medium",
+  Stress.Level <= 7 ~ "High",
+  Stress.Level >= 8 ~ "Very High"
+))
+
+# Create binary outcome: 1 = Disorder (Insomnia/Sleep Apnea), 0 = None
+sleep <- sleep %>%
+  mutate(Sleep.Disorder = ifelse(trimws(Sleep.Disorder) == "None", 0, 1)) %>%
+  filter(!is.na(Sleep.Disorder))
+
+```
+
+# LASSO Linear regularized regression 
+To model the continous outcome Quality of Sleep variable, LASSO regression using 10-fold cross validation was applied to determine the optimal regularization parameter(lamba.min). The dataset was split into training (80%) and test (20%) sets, with model matrices generated to accomodate dummy variables. 
+```{r}
+sleep_model <- sleep %>%
+  filter(!is.na(Quality.of.Sleep)) %>%
+  drop_na()
+
+set.seed(123)
+
+train_idx <- caret::createDataPartition(sleep_model$Quality.of.Sleep, p = 0.8, list = FALSE)
+train_data <- sleep_model[train_idx, ]
+test_data  <- sleep_model[-train_idx, ]
+
+formula <- Quality.of.Sleep ~ .
+X_train <- model.matrix(formula, data = train_data)[, -1]  # remove intercept
+y_train <- train_data$Quality.of.Sleep
+train_cols <- colnames(X_train)
+X_test <- model.matrix(formula, data = test_data)[, -1]
+y_test  <- test_data$Quality.of.Sleep
+
+# Ensure same column structure
+missing_cols <- setdiff(train_cols, colnames(X_test))
+
+# Add any missing columns to X_test as zeros
+for (col in missing_cols) {
+  X_test <- cbind(X_test, setNames(data.frame(0), col))
+}
+
+# Reorder columns to match training set exactly
+X_test <- X_test[, train_cols]
+
+# Add missing columns as zeros
+for (col in missing_cols) {
+  X_test[[col]] <- 0
+}
+
+# Reorder to match training set
+X_test <- X_test[, train_cols]
+
+# Convert to numeric matrix
+X_test <- as.matrix(X_test)
+mode(X_test) <- "numeric"
+
+y_test <- test_data$Quality.of.Sleep
+cv_lasso <- cv.glmnet(X_train, y_train, alpha=1)
+predicted_test <- predict(cv_lasso, newx = X_test, s = "lambda.min")
+
+rmse_test <- sqrt(mean((y_test - predicted_test)^2))
+rsq_test <- 1 - sum((y_test - predicted_test)^2) / sum((y_test - mean(y_test))^2)
+
+cat("Test RMSE:", round(rmse_test, 2), "\n")
+cat("Test R-squared:", round(rsq_test, 3), "\n")
+
+
+```
+The test RMSE is 0.16 which indicates that the model predicts Quality of sleep with an average error of +/- 0.16 units on test data, which is fairly accurate. 
+The test R-squared is 0.98. This indicates that the model explains 98.1% of the variance in sleep quality on unseen data or test data. These results confirm that the model is not overfitting the data and it generalizes well from training to test data. 
+
+```{r}
+# Plot for LASSO coefficient paths
+plot(cv_lasso$glmnet.fit, xvar = "lambda", label = TRUE)
+title("LASSO Coefficient Paths")
+
+```
+This plot shows the regression coefficients for each predictor in the model change as the regularization penalty (log lambda) increases.It shows that most predictors have non-zero coefficients. many coefficients shrink toward zero. The horizontal axis, the penalty increases towards the right. The predictors with higher magnitude coefficients are more influential in predicting Quality of sleep. 
+
+## Logistic regression with LASSO regularization
+This section uses logistic regression with LASSO regularization to predict binary outcome Gender (Male vs Female). This is particularly useful for high-dimensional datasets with categorical predictors in feature selection, overfitting control, and retaining only the most relevant features which helps in improving model intrepretability. 
+The dataset was filtered to only include valid binary gender and the dataset was split into 80% training and 20% test using stratified sampling to preserve class balance. 
+Model fitting was done by training logistic regression model with LASSO penalty (alpha=1) and applied 10 fold cross validation to tune the regularization parameter(lamba). 
+The model was optimized using ROC AUC metric to discriminate between the classes. 
+```{r}
+# Clean up gender labels and make binary target
+sleep_clean <- sleep %>%
+  filter(Gender %in% c("Male", "Female")) %>%
+  mutate(Gender = factor(Gender))
+
+#table(sleep_clean$Gender)
+
+#set.seed(123)
+split_idx <- caret::createDataPartition(sleep_clean$Gender, p = 0.8, list = FALSE)
+train_data <- sleep_clean[split_idx, ]
+test_data  <- sleep_clean[-split_idx, ]
+
+# Train logistic LASSO model
+model_gender <- train(
+  Gender ~ .,
+  data = train_data,
+  method = "glmnet",
+  trControl = trainControl(
+    method = "cv",
+    number = 10,
+    classProbs = TRUE,
+    summaryFunction = twoClassSummary
+  ),
+  tuneGrid = expand.grid(alpha = 1, lambda = seq(0.0001, 1, length = 100)),
+  metric = "ROC",
+  family = "binomial"
+)
+
+# Predict
+pred_probs <- predict(model_gender, newdata = test_data, type = "prob")[, "Male"]
+
+# ROC & AUC
+library(pROC)
+roc_obj <- roc(test_data$Gender, pred_probs)
+plot(roc_obj, main = "ROC Curve: Predicting Gender")
+auc(roc_obj)
+
+```
+Based on the AUC of 0.9905 suggests that the model can clearly distinguish whether a person's gender is male or female. This suggests that the model can correctly rank a randomly chosen male above a randomly chosen female 99.05% of the time, based on the predictor variables such as sleep duration, quality of sleep, stress levels etc. in the dataset. This model almost perfectly separates the classes of gender and predict the genders based on the predictor variables. 
+This suggests that based on this dataset, there are clear and strong predictable differences between males ans females across lifestyle, health, occupational factors. 
+
+## Regularization path with Logistic Regression (LASSO)
+This plot visualizes the change in logistic regression coefficients as regularization strength increases towards the right. Each colored line represents one predictor's coefficient path. 
+
+```{r}
+train_control <- trainControl(method = "cv", number = 10, classProbs = TRUE, summaryFunction = twoClassSummary)
+
+model_lasso <- train(
+  Gender ~ .,
+  data = train_data,
+  method = "glmnet",
+  trControl = train_control,
+  tuneGrid = expand.grid(alpha = 1, lambda = seq(0.0001, 1, length = 100)),
+  metric = "ROC",
+  family = "binomial"
+)
+
+plot(model_lasso$finalModel, xvar = "lambda", label = TRUE)
+title("Regularization Path (LASSO Logistic Regression)")
+```
+As you move from left to right (log lamba) increases: 
+the coefficients gradually shrink towards zero, showing the effect of LASSO penalty. Lines flatten at zero means the predictors are excluded from the model which helps in automatically selecting important features by shrinking irrelevant variables to zero. 
+
+# Part II SVM
+In this section, we extend our predictive modeling effects by applying Support Vector Machines (SVM) to both regression and classification tasks using the same cleaned and feature engineered dataset from before. We apply SVM models to evaluate whether SVM models offer improvemnts in predictive performance over regularized regression models to interpret behavior in context of sleep health and lifestyle factors. 
+
+## Data Preparation
+Before modeling can begin, the dataset was cleaned and transformed to ensure consistency and compatibility.
+Binary filtering for gender was done. Gender was converted to a factor variable for use in classification models. 
+Missing values were removed. 
+Blood Pressure column was split into two numeric columns: Systolic and Diastolic. 
+A stratified split was applied using 70/30 for training and testing data. 
+The variable Occupation was standardized to have identical factor levels in both training and test sets to prevent errors in prediction. 
+
+```{r}
+sleep_clean <- sleep %>%
+  filter(Gender %in% c("Male", "Female")) %>%
+  mutate(Gender = factor(Gender)) %>%
+  drop_na()
+
+# Split Blood.Pressure into systolic and diastolic
+sleep_clean <- sleep_clean %>%
+  separate(Blood.Pressure, into = c("Systolic", "Diastolic"), sep = "/", convert = TRUE)
+
+# Confirm conversion
+#str(sleep_clean[, c("Systolic", "Diastolic")])
+
+# 70/30 train-test split
+set.seed(123)
+index <- sample(1:nrow(sleep_clean), 0.7 * nrow(sleep_clean))
+train.data <- sleep_clean[index, ]
+test.data  <- sleep_clean[-index, ]
+combined_levels <- union(levels(factor(train.data$Occupation)), levels(factor(test.data$Occupation)))
+#set.seed(123)
+split_idx <- caret::createDataPartition(sleep_clean$Gender, p = 0.7, list = FALSE)
+train.data <- sleep_clean[split_idx, ]
+test.data  <- sleep_clean[-split_idx, ]
+
+train.data$Occupation <- factor(train.data$Occupation, levels = combined_levels)
+test.data$Occupation  <- factor(test.data$Occupation, levels = combined_levels)
+```
+
+## Hyperparameter Tuning (RBF Kernel)
+Grid search hyperparameter using 5 fold cross validation was performed to opitmize the performance of Support Vector Machine(SVM). The parameters tuned were:
+Cost: which controls the trade-off between maximizing the margin and minimizing classification error.
+Gamma: used to define how far the influence of a single training example reaches. 
+
+```{r}
+tune_control <- tune.control(cross = 5, nrepeat = 1)
+
+tune.RBF <- tune(
+  svm,
+  Gender ~ .,
+  data = train.data,
+  kernel = "radial",
+  ranges = list(
+    cost = 10^(-1:2),
+    gamma = c(0.1, 0.5, 1, 2)
+  ),
+  tunecontrol = tune_control
+)
+
+# Best model
+best.RBF <- tune.RBF$best.model
+best.cost.RBF <- best.RBF$cost
+best.gamma.RBF <- best.RBF$gamma
+```
+
+## Final Model Training
+Using the best cost and gamma values obtained above, the final SVM classfier was trained with the RBF Kernal on the full training dataset. This model was then used for final predictions and evaluation on the test set.
+```{r}
+final.RBF.class <- svm(
+  Gender ~ .,
+  data = train.data,
+  kernel = "radial",
+  cost = best.cost.RBF,
+  gamma = best.gamma.RBF,
+  probability = TRUE
+)
+```
+## Visualizing hyperparameter tuning results 
+##  Accuracy Heatmap (2D)
+This plot shows cross-validation error rates for each combination of cost and gamma. 
+```{r}
+# Extract results from tuning object
+tune_df <- as.data.frame(tune.RBF$performance)
+
+ggplot(tune_df, aes(x = factor(cost), y = factor(gamma), fill = error)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(low = "#56B1F7", high = "#132B43", name = "CV Error") +
+  labs(
+    title = "SVM RBF Kernel - Hyperparameter Tuning Heatmap",
+    x = "Cost (C)", y = "Gamma"
+  ) +
+  theme_minimal()
+
+```
+The darker shades in the heatmap indicates high cross-validation error and lighter shades indicate lower cross-validation errors. 
+The optimal SVM model lies most likely in the region of moderate cost (C=1 or 10) and gamma = 0.5-1.0. 
+
+## 3D Surface Plot 
+This 3D surface plot gives the interaction between cost and gamma and the optimal region. 
+```{r}
+library(lattice)
+
+wireframe(error ~ cost * gamma, data = tune_df,
+          drape = TRUE,
+          colorkey = TRUE,
+          screen = list(z = -60, x = -60),
+          main = "SVM Hyperparameter Tuning (CV Error Surface)",
+          xlab = "Cost", ylab = "Gamma", zlab = "Error")
+
+```
+This 3D plot indicates that the lowest points on the surface(light yellow green areas) are optimal hyperparameter region with minimal error. The plot has a clear drop in error at moderate values of cost(1-10) and gamma (0.5-1.0), which is similar to the findings from the heatmap above. 
+
+## Prediction and Evaluation
+After training the optimized SVM model with RBF Kernel, its performance is evaluated on unseen test dataset. The SVM model acheived an accuracy of 0.9459 or 94.59% indicating it correctly classified a high percentage of observation ie., True Positives(TP) and True Negatives(TN). This supports the effectiveness of the tuned SVM classifier. 
+```{r}
+pred <- predict(final.RBF.class, newdata = test.data, probability = TRUE)
+pred_probs <- attr(pred, "probabilities")
+
+# Check structure
+head(pred_probs)
+colnames(pred_probs)
+
+pred.RBF.class <- predict(final.RBF.class, test.data, type = "class")
+
+# Confusion Matrix
+confusion.matrix.RBF <- table(Predicted = pred.RBF.class, Actual = test.data$Gender)
+kable(confusion.matrix.RBF)
+
+# Accuracy
+accuracy <- sum(diag(confusion.matrix.RBF)) / sum(confusion.matrix.RBF)
+cat("Accuracy:", round(accuracy, 4), "\n")
+```
+High predicted probabilities for one class of male refelcts confident classification. 
+Mid-range probabilities suggest observations are near the decision boundary where misclassification is likely. 
+## ROC and AUC
+Next step, to evaluate the disriminative ability of the SVM classifier, the ROC curve and AUC were computed. The ROC curve shows the trade-off between sensitivity (true-positive rate) and 1-specificity (false positive rate) across different thresholds. 
+```{r, warning=FALSE, message=FALSE}
+
+pred_probs <- attr(predict(final.RBF.class, test.data, probability = TRUE), "probabilities")
+
+roc_obj <- roc(test.data$Gender, pred_probs[, "Male"])
+plot(roc_obj, main = "ROC Curve - SVM RBF")
+cat("AUC:", round(auc(roc_obj), 4), "\n")
+
+```
+The accuracy of 94.59% indicates that the model correctly predicted 94.6% of individuals in the test set of being male based on the predictors of lifestyle such as sleep quality, stress levels, sleep duration, occupation etc. 
+The Area Under the ROC curve measures how well the model can separate the two classes of Male vs Female. An AUC of 0.9948 is nearly perfect which suggests that the model ranks a randomly chosen male higher than a randomly chosen female 99.5% of the time- based on the predicted probability. The given SVM model is fairly good at distinguishing gender based on the given features. 
+The SVM model with RBF kernel with accuracy of 94.6% and AUC of 0.9948 achieved very high performance. This suggests that the features such as sleep patterns, health metrics, stress levels are strong predictors of gender in the dataset and the model can almost prefectly distinguish between male and female individuals based on the predictors. 
+
+# Comparison of SVM(linear/RBF) with regularized linear regression (LASSO/ridge) with Quality of sleep 
+The performance of SVM using both linear and RBF Kernels was evaluated in predicting the continuous outcome Quality of Sleep. These results were also compared with LASSO/Ridge regression model from Part 1.
+
+```{r}
+sleep_clean$Quality.of.Sleep <- as.numeric(sleep_clean$Quality.of.Sleep)
+
+#set.seed(123)
+split_idx <- sample(1:nrow(sleep_clean), size = 0.8 * nrow(sleep_clean))
+train_data <- sleep_clean[split_idx, ]
+test_data  <- sleep_clean[-split_idx, ]
+
+#Linear SVM
+svm_reg_linear <- svm(
+  Quality.of.Sleep ~ .,
+  data = train_data,
+  kernel = "linear"
+)
+#RBF SVM
+svm_reg_rbf <- svm(
+  Quality.of.Sleep ~ .,
+  data = train_data,
+  kernel = "radial"
+)
+
+```
+
+```{r}
+# Evaluation on test set 
+# Predictions
+pred_linear <- predict(svm_reg_linear, newdata = test_data)
+pred_rbf    <- predict(svm_reg_rbf, newdata = test_data)
+
+# True values
+actual <- test_data$Quality.of.Sleep
+
+# Evaluation metrics
+rmse <- function(actual, predicted) sqrt(mean((actual - predicted)^2))
+mae  <- function(actual, predicted) mean(abs(actual - predicted))
+
+# Linear SVM
+rmse_linear <- rmse(actual, pred_linear)
+mae_linear  <- mae(actual, pred_linear)
+
+# RBF SVM
+rmse_rbf <- rmse(actual, pred_rbf)
+mae_rbf  <- mae(actual, pred_rbf)
+
+cat("Linear SVM - RMSE:", round(rmse_linear, 4), "| MAE:", round(mae_linear, 4), "\n")
+cat("RBF SVM   - RMSE:", round(rmse_rbf, 4), "| MAE:", round(mae_rbf, 4), "\n")
+
+```
+
+```{r}
+# compare with regularized linear regression 
+
+# Regression model performance
+rmse_lasso <- 0.12
+mae_lasso  <- 0.10
+
+rmse_ridge <- 0.13
+mae_ridge  <- 0.11
+
+rmse_svm_linear <- 37.8933
+mae_svm_linear  <- 25.6934
+
+rmse_svm_rbf <- 0.4102
+mae_svm_rbf  <- 0.1784
+
+results <- data.frame(
+  Model = c("LASSO", "Ridge", "SVM - Linear", "SVM - RBF"),
+  RMSE  = c(rmse_lasso, rmse_ridge, rmse_svm_linear, rmse_svm_rbf),
+  MAE   = c(mae_lasso, mae_ridge, mae_svm_linear, mae_svm_rbf)
+)
+
+print(results)
+
+```
+Based on the comparison table above:
+While the RBF SVM performs very well, LASSO/Ridge still produces slightly better RMSE and MAE in this case. This suggests that the relationship is most likely linear with some non-linear features. 
+In conclusion, in predicting Quality of sleep, the non-linear RBF SVM did a significantly better job than linear SVM with RMSE of 0.41 and MAE of 0.18. Compared to regularized linear models from PART 1 (LASSO RMSE: 0.12), the RBF SVM showed higher error which indicates there maybe some non-linear patterns in the data. The regularized linear regression remains the best approach for Quality of sleep. 
+
+## Plot for Model comparison (RMSE & MAE)
+```{r}
+# Data frame of results
+results <- data.frame(
+  Model = c("LASSO", "Ridge", "SVM - Linear", "SVM - RBF"),
+  RMSE  = c(0.12, 0.13, 37.8933, 0.4102),
+  MAE   = c(0.10, 0.11, 25.6934, 0.1784)
+)
+
+# Convert to long format for grouped bar chart
+results_long <- pivot_longer(results, cols = c("RMSE", "MAE"), names_to = "Metric", values_to = "Value")
+
+# Plot
+ggplot(results_long, aes(x = Model, y = Value, fill = Metric)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  labs(
+    title = "Model Comparison: RMSE and MAE",
+    x = "Model", y = "Error Value", fill = "Metric"
+  ) +
+  theme_minimal() +
+  scale_fill_manual(values = c("RMSE" = "#0073C2FF", "MAE" = "#EFC000FF")) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+```
+The RMSE highlights the error scale for each model.
+The MAE shows the average absolute error.
+Based on the bar chart, LASSO and Ridge clearly outperform the SVM models, especially the Linear SVM which shows much larger errors.
+
