@@ -1,0 +1,606 @@
+---
+title: "Predicting Life Expectancy based on Socio-Economic and Health Factors "
+author: "Sinja Sharma"
+date: ""
+output:
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    toc_collapsed: yes
+    code_folding: hide
+    code_download: yes
+    smooth_scroll: yes
+    theme: lumen
+  word_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    keep_md: yes
+  pdf_document: 
+    toc: yes
+    toc_depth: 4
+    fig_caption: yes
+    number_sections: no
+    fig_width: 3
+    fig_height: 3
+editor_options: 
+  chunk_output_type: inline
+---
+```{=html}
+
+<style type="text/css">
+
+/* Cascading Style Sheets (CSS) is a stylesheet language used to describe the presentation of a document written in HTML or XML. it is a simple mechanism for adding style (e.g., fonts, colors, spacing) to Web documents. */
+
+h1.title {  /* Title - font specifications of the report title */
+  font-size: 22px;
+  font-weight: bold;
+  color: DarkRed;
+  text-align: center;
+  font-family: "Gill Sans", sans-serif;
+}
+h4.author { /* Header 4 - font specifications for authors  */
+  font-size: 18px;
+  font-weight: bold;
+  font-family: system-ui;
+  color: navy;
+  text-align: center;
+}
+h4.date { /* Header 4 - font specifications for the date  */
+  font-size: 18px;
+  font-family: system-ui;
+  color: DarkBlue;
+  text-align: center;
+  font-weight: bold;
+}
+h1 { /* Header 1 - font specifications for level 1 section title  */
+    font-size: 22px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: center;
+    font-weight: bold;
+}
+h2 { /* Header 2 - font specifications for level 2 section title */
+    font-size: 20px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+    font-weight: bold;
+}
+
+h3 { /* Header 3 - font specifications of level 3 section title  */
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    color: navy;
+    text-align: left;
+}
+
+h4 { /* Header 4 - font specifications of level 4 section title  */
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    color: darkred;
+    text-align: left;
+}
+
+body { background-color:white; }
+
+.highlightme { background-color:yellow; }
+
+p { background-color:white; }
+
+</style>
+```
+---
+
+```{r setup, include=FALSE}
+# code chunk specifies whether the R code, warnings, and output will be included in the output files.
+
+if (!require("knitr")) {
+   install.packages("knitr")
+   library(knitr)
+}
+if (!require("tidyverse")) {
+   install.packages("tidyverse")
+library(tidyverse)
+}
+if (!require("palmerpenguins")) {
+   install.packages("palmerpenguins")
+library(palmerpenguins)
+}
+if (!require("plotly")) {
+   install.packages("plotly")
+library(plotly)
+}
+if (!require("GGally")) {
+   install.packages("GGally")
+library(GGally)
+}
+if (!require("naniar")) {
+   install.packages("naniar")
+library(naniar)
+}
+if (!require("pool")) {
+   install.packages("pool")
+library(pool)
+}
+if (!require("DBI")) {
+   install.packages("DBI")
+library(DBI)
+}
+if (!require("RMySQL")) {
+   install.packages("RMySQL")
+library(RMySQL)
+}
+if (!require("randomForest")) {
+   install.packages("randomForest")
+library(randomForest)
+}
+if (!require("ggiraph")) {
+   install.packages("ggiraph")
+library(ggiraph)
+}
+if (!require("highcharter")) {
+   install.packages("highcharter")
+library(highcharter)
+}
+if (!require("broom")) {
+   install.packages("broom")
+library(broom)
+}
+if (!require("e1071")) {
+   install.packages("e1071")
+   library(knitr)
+}
+if (!require("corrplot")) {
+   install.packages("corrplot")
+library(plotly)
+}
+if (!require("cluster")) {
+   install.packages("cluster")
+library(cluster)
+}
+if (!require("FactoMineR")) {
+   install.packages("FactoMineR")
+library(FactoMineR)
+}
+if (!require("caret")) {
+   install.packages("caret")
+library(caret)
+}
+if(!require("mice")) {
+  install.packages("mice")
+library(mice)
+}
+if(!require("DMwR2")) {
+   install.packages("DMwR2")
+library("DMwR2")
+}
+if(!require("pROC")) {
+   install.packages("pROC")
+library("pROC")
+}
+if(!require("glmnet")) {
+   install.packages("glmnet")
+library("glmnet")
+}
+if (!require("gridExtra")) {
+   install.packages("gridExtra")
+library(gridExtra)
+}
+if (!require("ggrepel")) {
+   install.packages("ggrepel")
+library(ggrepel)
+}
+if (!require("rpart.plot")) {
+   install.packages("rpart.plot")
+library(rpart.plot)
+}
+## 
+knitr::opts_chunk$set(
+  # include code chunk in the output file
+  echo = TRUE,
+  # sometimes, you code may produce warning messages, you can choose to include the warning messages in the output file.
+  warning = FALSE, 
+  # you can also decide whether to include the output in the output file.
+  results = TRUE, 
+  message = FALSE,
+  comment = NA
+)  
+```
+# Introduction 
+Life expectancy, the average number of years a person is expected to live based on current mortality rates, serves as a key indicator of population health and social development. Over the past century, improvements in medical technology, sanitation, nutrition, public health interventions have stabilized economic growth and stability which has a direct impact on global life expectancy. This stability has been lead to an increasing life expectancy globally.  However, there are still existing disparities between regions and countries which are driven by social, economic, and health factors. Understanding how these drivers play a critical role in global health and public health efforts in reducing health and socioeconomic inequities. 
+
+# Dataset and Feature Variables 
+
+This dataset contains 2,938 observations and 22 variables, covering life expectancy and related health and social indicators for multiple nations from 2000 to 2015. The dataset includes country-wide and other economic, social and health metrics. 
+The dataset contains 193 total countries.
+
+```{r}
+life_ex <- read.csv("https://sin-ja.github.io/STA552/Project3/Life_Expectancy_Data.csv", stringsAsFactors = FALSE)
+life_copy <- life_ex
+names(life_ex)
+#str(life_ex)
+#summary(life_ex)
+#glimpse(life_ex)
+```
+Variable Description:
+
+1. Country - Name of the country
+2. Year - Data year from 2000 to 2015
+3. Status - Economic Classification (Developing/ Developed)
+4. Life Expectancy - Avergae lifespan in years 
+5. Adult Mortality - Probability of death between ages 15 - 60 per 1000 individuals
+6. Infant Deaths - Number of infant deaths per 1000 live births 
+7. Alcohol - Per capita alcohol consumption 
+8. Percentage Expenditure - Government health expenditure as a percentage of GDP
+9. Hepatitis B - Immunization coverage percentage 
+10. Measles - Number of reported measles cases 
+11. BMI - Average Body Mass Index 
+12. Under-Five Deaths - Mortality rate for children under five
+13. Polio & Diphtheria - Immunization rates
+14. HIV/AIDS - Deaths due to HIV/AIDS per 1000 individuals 
+15. GDP - Gross Domestic Product per capita 
+16. Population - Total population of the country 
+17. Thinness (1-19 years, 5-9 years) - Percentage of underweight children 
+18. Income Composition of Resources - Human development index proxy 
+19. Schooling - Average number of years of schooling 
+
+# Handling Missing Values 
+
+Handling missing values is a critical step in data preprocessing and analysis. However, Classification and Regression Tree (CART) methods have a built-in mechanism to address missing data through surrogate splits, allowing observations with incomplete predictor values to still contribute to the model. 
+
+```{r}
+# Total missing values per column
+colSums(is.na(life_ex))
+
+#  Remove rows with missing Life.expectancy
+miss_ex <- life_ex %>% filter(!is.na(Life.expectancy))
+
+# Check for missing values in key predictors
+#key_vars <- miss_ex %>% select(Life.expectancy, Adult.Mortality, BMI, GDP, Status, infant.deaths, Alcohol, percentage.expenditure, Hepatitis.B, Measles, under.five.deaths, Polio, Total.expenditure, Diphtheria, HIV.AIDS, Population, thinness..1.19.years, thinness.5.9.years, Income.composition.of.resources, Schooling)
+#summary(key_vars)
+
+# Visualize missing data
+vis_miss(life_ex)
+
+# Further clean the dataset by removing rows with missing key predictors.
+LE_clean <- miss_ex %>% drop_na(Adult.Mortality, BMI, GDP, Status, infant.deaths, Alcohol, percentage.expenditure, Hepatitis.B, Measles, under.five.deaths, Polio, Total.expenditure, Diphtheria, HIV.AIDS, Population, thinness..1.19.years, thinness.5.9.years, Income.composition.of.resources, Schooling)
+```
+
+Missing data overview:
+Some variables have missing values most notably:
+
+Hepatitis B (553 missing)
+GDP (448 missing)
+Population (652 missing)
+Total expenditure (226 missing)
+Income Composition of Resources (167 missing)
+Schooling (163 missing)
+
+# Exploratory Data Analysis 
+
+Exploratory Data Anlysis (EDA) involves visualizing and summarizing the data to understand its structure, detect patterns, identify anomalies, and generate hypostheses for further investigation and analysis. 
+In this analysis, a variety of visualizations were employed to capture both the distribution of individuals variables and the relationship among predictors and the response variable. 
+
+## Histogram of Life.expectancy (continuous response)
+```{r}
+
+ggplot(life_ex, aes(x = Life.expectancy)) +
+  geom_histogram(bins = 30, fill = "blue", color = "black", alpha = 0.7) +
+  labs(title = "Distribution of Life.expectancy", x = "Life Expectancy", y = "Count")
+```
+
+The histogram of life expectancy reveals country level life expectancy values. The life expectancies span from mid 30s or 40s upto 90 years, indicating some countries have significantly lower life expectancy. A large portion of observations cluster around the mid to late 60s and early 70s suggesting that most countries in the dataset have life expectancy values aprroximately in this range. The peak around the upper 60s and 70 year indicates the most common life expectancies globally. The tail extending to lower 40s and 50s reflects countries with lower life spans. On. the upper end, some countries seem to surpass the 80-year mark, highlighting countries with longer life spans. 
+The distribution appears left-skewed which suggests that while many countries fall in the mid-range, fewer countries lie at the very low end of the scale. 
+
+## Scatterplot of Life.expectancy versus Adult.Mortality
+```{r}
+ggplot(life_ex, aes(x = Adult.Mortality, y = Life.expectancy)) +
+  geom_point(alpha = 0.5) +
+  labs(title = "Life.expectancy vs. Adult.Mortality", x = "Adult Mortality", y = "Life Expectancy")
+```
+
+The scatter plot comparing Life.expectancy to Adult.Mortality reveals a strong negative relationship between these two variables. As adult mortality increases, life expectancy declines, which often correlates with poorer health conditions and lower average lifespan in adults. At lower values (0-100) of adult mortality, life expectancy is seen higher (>70). Higher adult mortality values ( >200) are associated with distinctly lower life expectancy. 
+While generally a strongly negative correlation is seen, the plot also shows some curvature which suggests a potentially non-linear relationship.
+There are some extreme observations, potentially outliers in the dataset.
+
+## Scatterplot of Life.expectancy versus Infant.deaths
+```{r}
+ggplot(life_ex, aes(x = infant.deaths, y = Life.expectancy)) +
+  geom_point(alpha = 0.5, color = "brown") +
+  geom_smooth(method = "lm", se = TRUE, col = "darkblue") +
+  labs(title = "Life.expectancy vs Infant.deaths",
+       x = "Infant Deaths",
+       y = "Life Expectancy")
+```
+
+The scatter plot of life expectancy vs. infant deaths shows a clear negative relationship indicating that as number of infant deaths increases, average life expectancy tends to decrease. 
+The fitted regression line sloping downward confirms that higher infant mortality correlates with lower life expectancy. A majority of the points are clustered toward the left side of the plot, where infant deaths are relatively low, corresponding to higher or moderate life expectancy. On the right, at higher infant death rates, life expectancy drops below 50 and 60 years, potentially signifying that lower health, economic, social factors have a correlation with higher infant death rates and lower life expectancy rates. 
+The spread in data points of life expectancy suggests other factors such as adult mortality, GDP,public health policies play a role in overall life span. 
+
+## Boxplots for Categorical predictors 
+```{r}
+ggplot(life_ex, aes(x = Status, y = Life.expectancy, fill = Status)) +
+  geom_boxplot(alpha = 0.7) +
+  labs(title = "Life.expectancy by Status",
+       x = "Status",
+       y = "Life Expectancy") +
+  theme_minimal()
+```
+
+The boxplot compares life expectancy across categories "Developed" and "Developing" countries. The median life expectancy for developed country lies notably higher (>70) compared to developing countries (mid-60s). This gap shows the disparities in income, healthcare, social services contribute to longer average lifespans in more developed regions 
+In Developed countries the box is fairly narrow indicating that most developed countries cluster around relatively high life expectancies. the whiskers do not extend far suggesting fewer extreme values.
+In Developing countries, the box is somewhat wider, reflecting a broader range of life expectancies within this group. Several extreme values are noted, that dip significantly lower (40-50), implying that certain developing nations face severe health and socio-economic challenges and a markedly low life expectancies.  
+
+# Feature engineering 
+
+Feature engineering involves transforming raw data into meaningful features that improve the performance or interpretability of predictive models. 
+Life expectancy feature variable was converted into binary outcome by calculating the median value and with labels "High" and "Low". "High" is when the observation values exceeds the median and "Low" otherwise. This conversion allows for a straightforwards classification tasks where the model can distinguish between lower and higher life expectancies. 
+A numeric variable (LE_numeric) was also created assigning a value of 1 for "High" and 0 for "Low" for probability based regression models. 
+Feature variable Country was dropped, to include only variables that contribute to predictive outcomes. 
+
+```{r}
+# Calculate the median of Life.expectancy
+medianLE <- median(LE_clean$Life.expectancy, na.rm = TRUE)
+cat("Median Life.expectancy:", medianLE, "\n")
+
+# Create a new binary variable:
+# - "High" if Life.expectancy > medianLE
+# - "Low" if Life.expectancy <= medianLE
+library(dplyr)
+LE_new <- LE_clean %>%
+  mutate(LE_binary = ifelse(Life.expectancy > medianLE, "High", "Low"),
+         LE_binary = factor(LE_binary, levels = c("Low", "High")),
+         LE_numeric = ifelse(LE_binary == "High", 1, 0)
+               )
+
+LE_new <- LE_new %>% select(-Country)
+
+# Check the distribution of the new binary variable
+table(LE_new$LE_binary)
+```
+The output shows 831 observations labeled as "Low" and 818 observations labeled as "High". The distribution of "High" and "Low" is balanced. 
+The median life expectancy value is 71.7. 
+
+# CART Specific Analytic Task 
+
+Overview of Key Components:
+CART Regression recursively partitions the predictor space to minimize within-node variance, leading to an interpretable tree that generates mean predictions in terminal nodes. Key hyperparameters include the complexity parameter (cp) which controls the tree pruning and the maximum depth of the tree. 
+
+Hyperparameter Tuning: 
+10-fold cross-validation is then used via the caret package to tune cp (the cost-complexity parameter).
+
+Final Model Training:
+Once the Optimal hyperparameters are selected, we train the final model on the training data. 
+
+Predictions on Test Data and Performance Evaluation:
+Life expectancy is predicted on the hold-out test set and performance is evaluated using metrics such as Root Mean Squared Error (RMSE), Mean Absolute Error (MAE), and R-squared. Visualizations include the regression tree itself and a scatter plot comparing predictions with actual values. 
+
+## Train-Test Split
+
+After performing the data cleaning and feature engineering steps,  dataset(LE_new) is split into 70% training and 30% testing sets. 
+
+```{r}
+
+# Create the 70/30 train-test split using caret's createDataPartition
+# Training and testing data for binary "high" and "low"
+train_idx <- createDataPartition(LE_new$LE_binary, p = 0.7, list = FALSE)
+train_data <- LE_new[train_idx, ]
+test_data  <- LE_new[-train_idx, ]
+
+# Verify the dimensions of the splits
+cat("Training set dimensions:", dim(train_data), "\n")
+cat("Testing set dimensions:", dim(test_data), "\n")
+
+```
+
+The dimensions of the split are:
+Training set: 1155 observations and 23 variables 
+Testing set: 494 observations and 23 variables 
+With 1155 observations and rich set of 23 variables, the model as ample information to learn robust patterns. Having 494 observations in the test set gives a substantial independent set to assess model performance. This helps ensure that the evaluation matrics such as RMSE, MAE and R-squared for regression accuracy and AUC for classification. The proportional split between training and testing data minimizes the risk of overfitting and is crucial for validating the models derived from the training set to capture the underlying patterns. 
+
+## Hyperparameter Tuning (cp)
+
+Hyperparameter tuning involves finding the optimal set of parameters that balance model complexity and predictive performance. In CART, it is the complexity parameter (cp), which governs how much the tree is pruned. 
+Cross-validation searches over the defined cp grid and outputs the best cp value based on classification accuracy.
+
+```{r}
+# Define a tuning grid for cp values
+tune_grid <- expand.grid(cp = seq(0.001, 0.05, by = 0.005))
+
+# Set up cross-validation parameters
+train_control <- trainControl(method = "cv", number = 10)
+
+# Train the CART classification model using caret 
+cart_tuned <- train(LE_binary ~ Adult.Mortality + BMI + GDP + Status + infant.deaths + Alcohol + percentage.expenditure + Hepatitis.B + Measles + under.five.deaths + Polio + Total.expenditure + Diphtheria + HIV.AIDS + Population + thinness..1.19.years + thinness.5.9.years + Income.composition.of.resources + Schooling,
+                    data = train_data,
+                    method = "rpart",
+                    tuneGrid = tune_grid,
+                    trControl = train_control)
+
+# Display the tuning results
+print(cart_tuned)
+plot(cart_tuned, main = "Hyperparameter Tuning: cp vs. Accuracy")
+
+```
+
+The cp controls the pruning of the classification tree. As the cp changes from 0.001 to 0.046 different accuracies and kappa scores are generated. The best accuracy appears to be 0.001, suggesting that the model benefits from less pruning and a more complex tree. The output also indicates that accuracy was used as the metric to pick the optimal model anc cp of 0.001 yielded the largest accuracy across all values. 
+
+From the plot, as cp increases from 0.001 to 0.05 the classification accuracy generally decreases. This decline may indicate that stronger pruning (higher cp) removes valuable splits from the tree. Around cp = 0.001 accuracy peaks suggesting a less pruned, more complex tree best captures the data. 
+
+Overall, the plot shows that a relatively low cp which allows for more complex trees. This tuning results suggests the dataset contains enough variation and relevant splits for deeper trees without the risk of overfitting. 
+
+## Final Model Training
+
+Once the hyperparameter tuning process has identified the optimal cp for the CART model, the next step is to train the final classification tree using the training dataset. This process uses the best cp value from tuning, and the final CART regression tree is used to train the training data. 
+The cp value represents the optimal tradeoff between underfitting and overfitting for the dataset. Using the optimal cp, the CART model is built on the training set. The response variable is the binary outcome LE_binary which categorizes life expectancy as "Low" or "High" based on the median value. All the predictors related to social, economic, and health metrics are included in the model. 
+Finally, the structure of the trained model is generated. This plot provides an interpretable representation of the decision rules within the tree,showing how predictors are used to classify observations into "High" or "Low" life expectancy categories. The plot also includes other details such as node labels and decision criteria. 
+
+```{r}
+library(rpart)
+library(rpart.plot)
+# Extract the best cp value from tuning results
+best_cp <- cart_tuned$bestTune$cp
+cat("Best cp selected:", best_cp, "\n")
+
+# Train the final CART classification model using the optimal cp value
+final_cart <- rpart(LE_binary ~ Adult.Mortality + BMI + GDP + Status + infant.deaths + Alcohol + percentage.expenditure + Hepatitis.B + Measles + under.five.deaths + Polio + Total.expenditure + Diphtheria + HIV.AIDS + Population + thinness..1.19.years + thinness.5.9.years + Income.composition.of.resources + Schooling,
+                    data = train_data,
+                    method = "class",
+                    control = rpart.control(cp = best_cp))
+
+# Visualize the final classification tree
+rpart.plot(final_cart, extra = 104, fallen.leaves = TRUE,
+           main = "Final CART Classification Tree")
+```
+
+The tree begins by splitting on the variable Income.composition.of.resources indicating that economic and educational resource is the single most factor for distinguishing "High" or "Low" life expectancy in data. Observations with Income.composition.of.resources with <0.68 fall on the left branch and those above this threshold fall on the right branch. This split highlights the central role that resource availability plays in longevity.
+Observations with relatively low Income.composition.of.resources on the left branch, further splits using variables such as BMI, Thinness.5.9.years, Adult.Mortality. Diphtheria and Alcohol. These splits reflect health and nutritional factors as well as mortality rates which influence life expectancy in lower resource context. 
+Observations with resource index of >0.68 the tree focuses on metrics like schooling, and Adult.Mortality to filter whether life expectancy remains "High" or declines "Low". This suggests that in better resourced regions and populations variations in educational attainment and mortality rates become differentiators in life expectancy.
+The final leaves indicate the class label assigned by the tree either "High" or "Low" life expectancy. The final leaves also contains the number of observations that fall into each leaf. 
+
+## Predictions on Test Data and Determining the Optimal Cut-Off
+
+After developing and tuning the final CART classification model, the next step is to evaluate its performance on unseen data. In this section, predictions is generated on the test set by obtaining the predicted probabilities. The predicted probabilities is obtained first for the "high" class and an optimal cut-off probability is determined using ROC analysis. Then, the probabilities is converted into class predictions based on the optimal cut-off value. 
+This process ensures that the final model evaluation is based on well calibrated decision rule, improving reliability of performance metrics.
+
+```{r}
+
+# Get predicted probabilities for the "High" class (second column)
+cart_probs <- predict(final_cart, newdata = test_data, type = "prob")[,2]
+
+# ROC analysis to determine optimal cutoff (Youden’s index)
+roc_cart <- roc(response = test_data$LE_binary, predictor = cart_probs, levels = c("Low", "High"))
+optimal_cutoff <- coords(roc_cart, x = "best", best.method = "youden", ret = "threshold")
+optimal_cutoff_num <- unlist(optimal_cutoff)
+cat("Optimal cutoff probability:", optimal_cutoff_num, "\n")
+
+
+# Convert probabilities into class labels using the optimal cutoff
+cart_pred_class <- factor(ifelse(cart_probs > optimal_cutoff_num, "High", "Low"), levels = c("Low", "High"))
+
+```
+
+The ROC analysis has yielded an optimal cutoff probability of 0.879. This cutoff indicates that the model classified an observation as "High" life expectancy only if its predicted probability is > 87.9%. This indicates that the CART model requires high confidence before assigning an observation to the "High" category. 
+The use of Youden's index seeks to maximize the sum of sensitivity (true positive) and specifity (true negative). A cutoff of 0.879 means that at this threshold the classifier is optimized for the best combined performance.
+
+## Performance Evaluation 
+
+Once the model is trained and optimal probability thresholds determined, its is essential to evaluate how well the CART classifier performs on unseen data. The model is assessed using several standard performance metrics. The classification performance is evaluated using a confusion matrix and performance metric such as overall accuracy, sensitivity, and specificity is calculated. 
+A confusion matrix provides a detailed breakdown of the model's predictions, with number of true positives, true negatives, false positives and false negatives. Key metrics such as overall accuracy - the proportion of correctly classified observations, sensitivity - the model's ability to correctly identify "High" life expectancy, and specificity - the model's ability to correctly identify "Low" life expectancy, are used. 
+The ROC curve plots the trade-off between sensitivity and specificity at various thresholds. The AUC and ROC summarizes the model's discrimination ability. 
+
+```{r}
+conf_mat_cart <- confusionMatrix(cart_pred_class, test_data$LE_binary, positive = "High")
+print(conf_mat_cart)
+
+auc_cart <- auc(roc_cart)
+cat("AUC for CART Model:", auc_cart, "\n")
+
+# Generate ROC object using actual test outcomes and predicted probabilities.
+roc_cart <- roc(response = test_data$LE_binary, 
+                predictor = cart_probs, 
+                levels = c("Low", "High"), 
+                direction = "<")  # 'direction' depends on how your probabilities are set up.
+
+# Compute AUC from the ROC object
+auc_cart <- auc(roc_cart)
+
+# Plot the ROC curve
+plot(roc_cart, col = "blue", lwd = 2, main = "ROC Curve for CART Model")
+
+# Add a legend with the AUC value on the plot
+legend("bottomright", legend = paste("AUC =", round(auc_cart, 3)), 
+   
+           col = "blue", lwd = 2)
+```
+
+At 91.7% accuracy, the model correctly classifies the majority of test observations. Both high specificity (95.18%) and respectable sensitivity (88.16%) demonstartates that the model discriminates well between "High" and "Low" life expectancy. 
+The model correctly identifies about 88% of the actual "High" life expectancy and correctly identifies 95% of the actual "Low" life expectancy. 
+The positive predictive value (PPV) of 94.7% and negative predictive value (NPV) of 89.1% indicates that when the model predicts a class it is right most of the time. 
+
+The AUC of 0.944 indicates a strong ability to discriminate between "High" and "Low" classes for life expectancy. The plot of ROC curve rapidly rises toward the top-left corner of the plot which reflects the model can reach a high true positive rate while keeping the false positive rate relatively low. This provides confidence in the model's predictive power. 
+
+## CART Regression Tree
+
+CART Regression tree using numeric response LE_numeric is generated. This model attempts to predict 0 or 1, 0 indicates "Low" and 1 indicates "High" life expectancy. 
+This model excludes the original continuous life expectancy and uses the factor-encoded binary variable- LE_binary. The regression tree is built using anova method for continous outcome. The structure of the regression tree is visualized in a plot that displays the splits and terminal nodes. This approach of using regression tree for binary numeric response model outputs continuous estimates that can be interpreted using probability using regression metrics such as RMSE, MAE and R-squared.
+
+```{r}
+# Build CART regression tree
+# Exclude original Life.expectancy and LE_binary from predictors
+reg_formula <- as.formula("LE_numeric ~ . - Life.expectancy - LE_binary")
+cart_reg <- rpart(reg_formula, data = train_data, method = "anova", control = rpart.control(cp = 0.01))
+rpart.plot(cart_reg, type = 3, fallen.leaves = TRUE, main = "CART Regression Tree (Binary Numeric)")
+```
+
+A composite index of economic and educational resources - income.composition.of.resources is divided into two categories with threshold of 0.68. The left branch with <0.68 with observations trending toward lower probability of "High" life expectancy whereas the right branch is where countries with more likelihood of "High" expectancy. 
+Adult.Mortality appears in multiple branches which confirms that it strongly influences whether a country is predicted more often as "High" or "Low" (higher mortality rates). 
+Diphtheria, thinness.5.9.years and Schooling - The splits in these variables emphasize the importance of disease prevention with immunization, nutrition etc., and education. Each subsequent splits into smaller subgroups captures interactions among resource availability, health metrics, and mortality patterns for more precise probability estimates. 
+Each terminal node shows average of LE_numeric for observations that fal into that node. A value of near 0 indicates the model is strongly predicting "Low" and a value of near 1 is predicting "High". The percentages indicate the proportion of training observation that ended up in that terminal node. 
+Overall, this tree demonstrates how various intersecting socio-economic, health and demographic factors influence the probability of "High" or "Low" life expectancy. 
+
+## Regression model performance
+
+In this section, the performance of two CART-based models are assessed and compared using regression metrics. 
+CART Regression:
+This model is trained directly to predict the numeric variable (LE_numeric), with continuous values as outputs. Performance is evaluated using standard regression metrics such as Root Mean Squared Error (RMSE), Mean Absolute Error (MAE), and R-squared. 
+CART Classification:
+This model outputs discrete class labels "High" and "Low", which was then converted to numeric values 0 and 1 which allowed the use of regression performance metrics to assess the quality of the predictions. 
+
+```{r}
+# Predict numeric outcomes for test data using the regression tree
+reg_preds <- predict(cart_reg, newdata = test_data)
+
+# Create a results data frame for comparison
+results_reg <- test_data %>% select(LE_numeric) %>% mutate(Predicted = reg_preds)
+head(results_reg)
+
+# Compute regression performance metrics: RMSE, MAE, and R²
+reg_perf <- postResample(pred = reg_preds, obs = test_data$LE_numeric)
+print(reg_perf)
+
+# Convert classification predictions to numeric: "High"= 1, "Low"= 0
+cart_pred_numeric <- ifelse(cart_pred_class == "High", 1, 0)
+
+# Compute regression metrics comparing these converted predictions to the true numeric labels:
+class_perf_reg <- postResample(pred = cart_pred_numeric, obs = test_data$LE_numeric)
+print(class_perf_reg)
+
+performance_table <- tibble(
+  Model = c("CART Classification (Converted to Numeric)", "CART Regression"),
+  RMSE = c(class_perf_reg["RMSE"], reg_perf["RMSE"]),
+  MAE = c(class_perf_reg["MAE"], reg_perf["MAE"]),
+  R2 = c(class_perf_reg["Rsquared"], reg_perf["Rsquared"]),
+  AUC = c(auc_cart, NA)  # AUC is computed only for classification; NA for regression
+)
+knitr::kable(performance_table, caption = "Performance Metrics Comparison")
+```
+
+Comparative analysis:
+
+1. RMSE & MAE:
+
+Classification (converted to numeric) obtained slightly lower RMSE of 0.288 vs. 0.293 for CART regression. And a substantially low MAE - 0.083 vs. 0.138. This suggests that when converted into 0/1 binary framework, the classification predictions align more closely with the actualy binary labels on average. 
+
+Regression produced predictions that may lie between 0 and 1 leading to fractional output which can sometimes increase the absolute error.
+
+2. Variance (R-squared):
+
+Classification yielded an R-square of 0.699 meaning it explains about 70% of the variance when measured numerically. 
+
+Regression yielded an R-square of 0.663 meaning it explains about 66% of the variance in the binary outcome. 
+
+With an AUC of 0.944, the classification model shows strong discrimination capability and effectively distinguishes "High" vs "Low". 
+
+
+
+
+
+
+
+
+
+
